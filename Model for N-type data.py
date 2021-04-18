@@ -6,7 +6,7 @@ Created on Sat Apr 17 15:24:29 2021
 """
 import pandas as pd
 df = pd.read_excel (r'Thermocouple_data.xlsx',sheet_name='N_Type')
-df.drop(['Temp'],axis=1,inplace=True)
+#df.drop(['Temp'],axis=1,inplace=True)
 df['Error']=abs(df['Error'])
 '''
 def replace_missing (attribute):
@@ -18,12 +18,14 @@ data=df.copy()
 data.drop([25],axis=0,inplace=True)
 X_f=data.iloc[:,0:-1].values
 
-X_f=X_f[-5:]
+X_f=X_f[-5:] #out of tolerance values
 
 df=df[df['CI'].notna()]
 df['Error'].fillna((df['Error'].mean()), inplace=True)
 y=df.iloc[:,-1].values
 X=df.iloc[:,0:-1].values
+
+#Split 80% of data to train and 20% to test
 
 X_train=X[:-5,:]
 y_train=y[:-5]
@@ -52,12 +54,19 @@ y_pred = classifier.predict(X_test)
 import xgboost as xgb
 reg = xgb.XGBRegressor(n_estimators=1000)
 reg.fit(X_train, y_train)
-reg.fit(X_train, y_train,
-                eval_set=[(X_train, y_train), (X_test, y_test)],
-                early_stopping_rounds=50, #stop if 50 consequent rounds without decrease of error
-                verbose=False)
+#reg.fit(X_train, y_train,eval_set=[(X_train, y_train), (X_test, y_test)],early_stopping_rounds=50, #stop if 50 consequent rounds without decrease of error,verbose=False)
 X_norm=reg.predict(X_test)
-    
+
+#cal accuracy 
+import sklearn.metrics as metrics
+import numpy as np
+from sklearn.metrics import r2_score
+ 
+print(metrics.mean_absolute_error( y_test, X_norm))
+print(metrics.mean_squared_error(y_test, X_norm))
+print(np.sqrt(metrics.mean_squared_error(y_test, X_norm)))  
+
+#predict for out of tolerance values
 X_pred=reg.predict(X_f)
 
 
@@ -69,6 +78,8 @@ pol_reg = LinearRegression()
 pol_reg.fit(X_poly, y_train)
 X_f_1=X_f[:,0]
 pred_1=pol_reg.predict(poly_reg.fit_transform(X_test))
+
+
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 poly_reg = PolynomialFeatures(degree=2)
@@ -77,19 +88,9 @@ pol_reg = LinearRegression()
 pol_reg.fit(X_poly, y_train)
 X_f_1=X_f[:,0]
 pred_2=pol_reg.predict(poly_reg.fit_transform(X_test))
-import sklearn.metrics as metrics
-import numpy as np
-from sklearn.metrics import r2_score
 
-print(metrics.mean_absolute_error( y_test, X_pred))
-print(metrics.mean_squared_error(y_test, X_pred))
-print(np.sqrt(metrics.mean_squared_error(y_test, X_pred)))
-predict = np.array([ 8, 11, 10, 10, 12])
-actual = np.array([7,7,7,7,7])
-corr_matrix = np.corrcoef(actual, predict)
-corr = corr_matrix[0,1]
-R_sq = corr**2
-print(r2_score(y_test,pred_2))
+
+
 
 '''
 from sklearn.preprocessing import MinMaxScaler
@@ -143,13 +144,6 @@ model.add(Dense(units = 1))
 
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 model.fit(x_train, y_train, epochs = 30, batch_size = 50)
-
-
-
-
-
-
-
 
 
 def create_model(units, m):
