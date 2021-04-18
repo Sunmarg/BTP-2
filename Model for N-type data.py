@@ -68,6 +68,7 @@ print(np.sqrt(metrics.mean_squared_error(y_test, X_norm)))
 
 #predict for out of tolerance values
 X_pred=reg.predict(X_f)
+print("Calibration Interval: " + str(round(sum(X_pred)/len(X_pred),2)) +"yrs with respect to reference year")
 
 
 from sklearn.linear_model import LinearRegression
@@ -88,8 +89,6 @@ pol_reg = LinearRegression()
 pol_reg.fit(X_poly, y_train)
 X_f_1=X_f[:,0]
 pred_2=pol_reg.predict(poly_reg.fit_transform(X_test))
-
-
 
 
 '''
@@ -144,7 +143,6 @@ model.add(Dense(units = 1))
 
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 model.fit(x_train, y_train, epochs = 30, batch_size = 50)
-
 
 def create_model(units, m):
     model = Sequential()
